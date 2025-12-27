@@ -2,7 +2,7 @@
 const canvas = document.getElementById('starfield');
 const ctx = canvas.getContext('2d');
 let w=0,h=0,stars=[];
-const STAR_COUNT = 300;
+const STAR_COUNT = 220;
 let warp=false,warpTimer=0;
 
 function resize(){
@@ -28,7 +28,7 @@ class Star{
     this.y = Math.random()*h - h/2;
     this.z = Math.random()*w; // distance
     this.size = Math.random()*1.2 + 0.2;
-    this.baseSpeed = 0.0002 + Math.random()*0.0006;
+    this.baseSpeed = 0.00006 + Math.random()*0.00018;
     if(!init && Math.random()<0.5){
       // recycle
       this.x = (Math.random()*w - w/2) * 0.2;
@@ -92,15 +92,23 @@ function createPlanets(){
       sun.style.background = `radial-gradient(circle at 30% 30%, #fff7d6, ${p.color})`;
       solarEl.appendChild(sun);
       // sun has no orbit
+      // add a small label for Sun
+      const sunLabel = document.createElement('div');
+      sunLabel.className = 'planet-label';
+      sunLabel.style.setProperty('--orbit', '0px');
+      sunLabel.style.setProperty('--size', p.size + 'px');
+      sunLabel.innerHTML = `<small>${p.name}</small>`;
+      solarEl.appendChild(sunLabel);
       planets.push({el: sun, speed:0, angle:0, meta:p, isSun:true});
       return;
     }
 
-    const orbit = Math.floor(minDim * p.orbitFactor) + i * 6 + 50;
+    const orbit = Math.floor(minDim * p.orbitFactor) + i * 6 + 60;
     const orbitWrap = document.createElement('div');
     orbitWrap.className = 'orbit';
     orbitWrap.style.setProperty('--orbit', orbit + 'px');
     orbitWrap.style.setProperty('--glow', p.color);
+    orbitWrap.style.setProperty('--size', p.size + 'px');
 
     const ring = document.createElement('div');
     ring.className = 'ring';
@@ -115,6 +123,14 @@ function createPlanets(){
     planet.title = p.name;
     planet.addEventListener('click', (e)=>{ e.stopPropagation(); document.getElementById('status').textContent = p.name; });
     orbitWrap.appendChild(planet);
+
+    // label
+    const label = document.createElement('div');
+    label.className = 'planet-label';
+    label.style.setProperty('--orbit', orbit + 'px');
+    label.style.setProperty('--size', p.size + 'px');
+    label.innerHTML = `<small>${p.name}</small>`;
+    orbitWrap.appendChild(label);
 
     solarEl.appendChild(orbitWrap);
 

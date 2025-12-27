@@ -42,6 +42,13 @@ body{background:linear-gradient(180deg,var(--bg-1),var(--bg-2));color:#eae6ff;ov
 .planet::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 -6px 12px rgba(0,0,0,0.12)}
 .orbit .ring{position:absolute;left:50%;top:50%;width:calc(var(--orbit) * 2);height:calc(var(--orbit) * 2);margin-left:calc(-1 * var(--orbit));margin-top:calc(-1 * var(--orbit));border-radius:50%;border:1px solid rgba(255,255,255,0.03);transform:translate(-50%,-50%);pointer-events:none}
 
+/* planet labels */
+.planet-label{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) translateX(var(--orbit)) translateY(calc(var(--size) + 6px));color:rgba(230,230,255,0.9);font-size:11px;white-space:nowrap;pointer-events:none;text-align:center}
+.planet-label small{display:block;font-size:10px;opacity:0.9}
+
+/* accentuate rings a little */
+.orbit .ring{border-color:rgba(155,155,255,0.04)}
+
 /* Sun (center) */
 .sun{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;box-shadow:0 22px 60px rgba(255,200,80,0.12),0 0 120px rgba(255,200,80,0.08);pointer-events:none}
 
