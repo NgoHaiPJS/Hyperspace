@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Hyperspace — Press to Jump</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas id="starfield"></canvas>
+
+  <!-- Solar system (planets) inserted between starfield and UI overlay -->
+  <div id="solar" aria-hidden="true"></div>
+
+  <div class="overlay">
+    <div class="panel">
+      <h1 class="title">HYPERSPACE</h1>
+      <p class="subtitle">A quiet, purple sea of stars. Press the button to jump.</p>
+      <button id="warpBtn" aria-label="Engage Warp"> 
+        <span class="btn-inner">Engage Warp</span>
+      </button>
+      <div id="status" class="status" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
