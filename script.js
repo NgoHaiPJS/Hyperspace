@@ -11,7 +11,12 @@ function resize(){
   h = canvas.height = Math.floor(window.innerHeight * dpr);
   canvas.style.width = window.innerWidth+'px';
   canvas.style.height = window.innerHeight+'px';
-  ctx.scale(dpr,dpr);
+  // reset transform before applying DPR to avoid cumulative scaling
+  if (ctx.setTransform) {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  } else {
+    ctx.scale(dpr, dpr);
+  }
 }
 
 class Star{
@@ -56,23 +61,44 @@ function initStars(){
 
 let last=performance.now();
 function loop(t){
-  const dt = Math.min(40, t-last);
+  const dt = Math.min(40, t - last);
   last = t;
-  ctx.clearRect(0,0,canvas.width,canvas.height);
 
-  // subtle purple vignette
+  // update planet angles first so they stay in sync with stars
+  planets.forEach(pl=>{
+    pl.angle += pl.speed * (warp ? 6.5 : 1) * (dt / 16);
+    pl.angle %= 360;
+    pl.el.style.transform = `translate(-50%,-50%) rotate(${pl.angle}deg)`;
+  });
+
+  // choose the planet closest to the front (angle near 0deg) and make only it visible
+  if(planets.length){
+    let bestIdx = 0; let bestDelta = 360;
+    planets.forEach((pl, idx)=>{
+      const ang = ((pl.angle % 360) + 360) % 360;
+      const delta = Math.min(ang, 360 - ang);
+      if(delta < bestDelta){ bestDelta = delta; bestIdx = idx; }
+    });
+    planets.forEach((pl, idx)=>{
+      const planetEl = pl.el.querySelector('.planet');
+      if(!planetEl) return;
+      if(idx === bestIdx){ planetEl.classList.add('visible'); planetEl.classList.remove('hidden'); }
+      else { planetEl.classList.add('hidden'); planetEl.classList.remove('visible'); }
+    });
+  }
+
+  // draw starfield
+  ctx.clearRect(0,0,canvas.width,canvas.height);
   const grad = ctx.createLinearGradient(0,0,w,0);
   grad.addColorStop(0,'rgba(10,4,20,0.45)');
   grad.addColorStop(1,'rgba(15,6,30,0.35)');
   ctx.fillStyle = grad;
   ctx.fillRect(0,0,w,h);
-
   stars.forEach(s=>{ s.update(dt); s.draw(); });
 
   if(warp){
     warpTimer -= dt;
     if(warpTimer <= 0) disableWarp();
-    // radial streaks
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
     for(let i=0;i<40;i++){
@@ -130,13 +156,13 @@ function playHum(){
 }
 
 // attach events
-window.addEventListener('resize', () => { resize(); initStars(); });
+window.addEventListener('resize', () => { resize(); initStars(); createPlanets(); });
 document.getElementById('warpBtn').addEventListener('click', ()=>{
   enableWarp();
 });
 
 // initial
-resize(); initStars(); requestAnimationFrame(loop);
+resize(); initStars(); createPlanets(); requestAnimationFrame(loop);
 
 // friendly initial status
 document.getElementById('status').textContent = 'Drift mode.';
