@@ -59,6 +59,52 @@ function initStars(){
   for(let i=0;i<STAR_COUNT;i++) stars.push(new Star());
 }
 
+// ---- Solar system / planets ----
+const solarEl = document.getElementById('solar');
+let planets = [];
+const planetsData = [
+  {name:'Mercury', size:8, color:'#bdbdbd', orbitFactor:0.08, speed:0.02},
+  {name:'Venus', size:12, color:'#e6c28a', orbitFactor:0.14, speed:0.014},
+  {name:'Earth', size:14, color:'#4aa3ff', orbitFactor:0.20, speed:0.01},
+  {name:'Mars', size:10, color:'#ff6b4d', orbitFactor:0.27, speed:0.008},
+  {name:'Jupiter', size:28, color:'#d1a26b', orbitFactor:0.40, speed:0.004},
+  {name:'Saturn', size:24, color:'#e0caa2', orbitFactor:0.52, speed:0.0035}
+];
+
+function createPlanets(){
+  // avoid duplicates on repeated calls
+  solarEl.innerHTML = '';
+  planets = [];
+  const minDim = Math.min(window.innerWidth, window.innerHeight);
+  planetsData.forEach((p,i)=>{
+    const orbit = Math.floor(minDim * p.orbitFactor) + i*8;
+    const orbitWrap = document.createElement('div');
+    orbitWrap.className = 'orbit';
+    orbitWrap.style.setProperty('--orbit', orbit + 'px');
+    orbitWrap.style.setProperty('--size', p.size + 'px');
+    orbitWrap.style.setProperty('--glow', p.color);
+
+    const ring = document.createElement('div');
+    ring.className = 'ring';
+    orbitWrap.appendChild(ring);
+
+    const planet = document.createElement('div');
+    planet.className = 'planet';
+    planet.style.width = p.size + 'px';
+    planet.style.height = p.size + 'px';
+    planet.style.background = p.color;
+    planet.style.setProperty('--orbit', orbit + 'px');
+    planet.title = p.name;
+    // click to show name
+    planet.addEventListener('click', (e)=>{ e.stopPropagation(); document.getElementById('status').textContent = p.name; });
+    orbitWrap.appendChild(planet);
+
+    solarEl.appendChild(orbitWrap);
+
+    planets.push({el: orbitWrap, speed: p.speed, angle: Math.random()*360, meta: p});
+  });
+}
+
 let last=performance.now();
 function loop(t){
   const dt = Math.min(40, t - last);
@@ -167,66 +213,3 @@ resize(); initStars(); createPlanets(); requestAnimationFrame(loop);
 // friendly initial status
 document.getElementById('status').textContent = 'Drift mode.';
 
-// ---- Solar system / planets ----
-const solarEl = document.getElementById('solar');
-let planets = [];
-const planetsData = [
-  {name:'Mercury', size:8, color:'#bdbdbd', orbitFactor:0.08, speed:0.02},
-  {name:'Venus', size:12, color:'#e6c28a', orbitFactor:0.14, speed:0.014},
-  {name:'Earth', size:14, color:'#4aa3ff', orbitFactor:0.20, speed:0.01},
-  {name:'Mars', size:10, color:'#ff6b4d', orbitFactor:0.27, speed:0.008},
-  {name:'Jupiter', size:28, color:'#d1a26b', orbitFactor:0.40, speed:0.004},
-  {name:'Saturn', size:24, color:'#e0caa2', orbitFactor:0.52, speed:0.0035}
-];
-
-function createPlanets(){
-  // avoid duplicates on repeated calls
-  solarEl.innerHTML = '';
-  planets = [];
-  const minDim = Math.min(window.innerWidth, window.innerHeight);
-  planetsData.forEach((p,i)=>{
-    const orbit = Math.floor(minDim * p.orbitFactor) + i*8;
-    const orbitWrap = document.createElement('div');
-    orbitWrap.className = 'orbit';
-    orbitWrap.style.setProperty('--orbit', orbit + 'px');
-    orbitWrap.style.setProperty('--size', p.size + 'px');
-    orbitWrap.style.setProperty('--glow', p.color);
-
-    const ring = document.createElement('div');
-    ring.className = 'ring';
-    orbitWrap.appendChild(ring);
-
-    const planet = document.createElement('div');
-    planet.className = 'planet';
-    planet.style.width = p.size + 'px';
-    planet.style.height = p.size + 'px';
-    planet.style.background = p.color;
-    planet.style.setProperty('--orbit', orbit + 'px');
-    planet.title = p.name;
-    // click to show name
-    planet.addEventListener('click', (e)=>{ e.stopPropagation(); document.getElementById('status').textContent = p.name; });
-    orbitWrap.appendChild(planet);
-
-    solarEl.appendChild(orbitWrap);
-
-    planets.push({el: orbitWrap, speed: p.speed, angle: Math.random()*360, meta: p});
-  });
-}
-
-// integrate orbital updates into main loop
-const originalLoop = loop;
-function loop(t){
-  const dt = Math.min(40, t-last);
-  // update planet angles
-  planets.forEach(pl=>{
-    pl.angle += pl.speed * (warp?6.5:1) * (dt/16); // scale with dt
-    pl.angle %= 360;
-    pl.el.style.transform = `translate(-50%,-50%) rotate(${pl.angle}deg)`;
-  });
-  // continue original canvas loop behavior
-  originalLoop(t);
-}
-
-// recreate planets when resizing
-window.addEventListener('resize', ()=>{ createPlanets(); });
-createPlanets();
