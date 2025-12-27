@@ -28,7 +28,7 @@ class Star{
     this.y = Math.random()*h - h/2;
     this.z = Math.random()*w; // distance
     this.size = Math.random()*1.2 + 0.2;
-    this.baseSpeed = 0.0008 + Math.random()*0.0022;
+    this.baseSpeed = 0.0002 + Math.random()*0.0006;
     if(!init && Math.random()<0.5){
       // recycle
       this.x = (Math.random()*w - w/2) * 0.2;
@@ -62,26 +62,44 @@ function initStars(){
 // ---- Solar system / planets ----
 const solarEl = document.getElementById('solar');
 let planets = [];
+// periods are approximate orbital period (days)
 const planetsData = [
-  {name:'Mercury', size:8, color:'#bdbdbd', orbitFactor:0.08, speed:0.02},
-  {name:'Venus', size:12, color:'#e6c28a', orbitFactor:0.14, speed:0.014},
-  {name:'Earth', size:14, color:'#4aa3ff', orbitFactor:0.20, speed:0.01},
-  {name:'Mars', size:10, color:'#ff6b4d', orbitFactor:0.27, speed:0.008},
-  {name:'Jupiter', size:28, color:'#d1a26b', orbitFactor:0.40, speed:0.004},
-  {name:'Saturn', size:24, color:'#e0caa2', orbitFactor:0.52, speed:0.0035}
+  {name:'Sun', size:64, color:'#ffd77a', orbitFactor:0, periodDays:0},
+  {name:'Mercury', size:8, color:'#bdbdbd', orbitFactor:0.06, periodDays:88},
+  {name:'Venus', size:12, color:'#e6c28a', orbitFactor:0.09, periodDays:225},
+  {name:'Earth', size:14, color:'#4aa3ff', orbitFactor:0.13, periodDays:365},
+  {name:'Mars', size:11, color:'#ff6b4d', orbitFactor:0.17, periodDays:687},
+  {name:'Jupiter', size:28, color:'#d1a26b', orbitFactor:0.27, periodDays:4333},
+  {name:'Saturn', size:24, color:'#e0caa2', orbitFactor:0.36, periodDays:10759},
+  {name:'Uranus', size:18, color:'#a0e3ff', orbitFactor:0.45, periodDays:30687},
+  {name:'Neptune', size:18, color:'#7aaaff', orbitFactor:0.52, periodDays:60190}
 ];
 
 function createPlanets(){
-  // avoid duplicates on repeated calls
   solarEl.innerHTML = '';
   planets = [];
   const minDim = Math.min(window.innerWidth, window.innerHeight);
+  // visual earth orbit time (ms) — Earth completes one orbit in this many ms for the animation
+  const earthOrbitMs = 40000; // ~40s for Earth orbit (adjustable)
+  const earthSpeed = 360 / earthOrbitMs; // deg per ms for Earth
+
   planetsData.forEach((p,i)=>{
-    const orbit = Math.floor(minDim * p.orbitFactor) + i*8;
+    if(p.name === 'Sun'){
+      const sun = document.createElement('div');
+      sun.className = 'sun';
+      sun.style.width = p.size + 'px';
+      sun.style.height = p.size + 'px';
+      sun.style.background = `radial-gradient(circle at 30% 30%, #fff7d6, ${p.color})`;
+      solarEl.appendChild(sun);
+      // sun has no orbit
+      planets.push({el: sun, speed:0, angle:0, meta:p, isSun:true});
+      return;
+    }
+
+    const orbit = Math.floor(minDim * p.orbitFactor) + i * 6 + 50;
     const orbitWrap = document.createElement('div');
     orbitWrap.className = 'orbit';
     orbitWrap.style.setProperty('--orbit', orbit + 'px');
-    orbitWrap.style.setProperty('--size', p.size + 'px');
     orbitWrap.style.setProperty('--glow', p.color);
 
     const ring = document.createElement('div');
@@ -89,19 +107,20 @@ function createPlanets(){
     orbitWrap.appendChild(ring);
 
     const planet = document.createElement('div');
-    planet.className = 'planet';
+    planet.className = 'planet visible';
     planet.style.width = p.size + 'px';
     planet.style.height = p.size + 'px';
     planet.style.background = p.color;
     planet.style.setProperty('--orbit', orbit + 'px');
     planet.title = p.name;
-    // click to show name
     planet.addEventListener('click', (e)=>{ e.stopPropagation(); document.getElementById('status').textContent = p.name; });
     orbitWrap.appendChild(planet);
 
     solarEl.appendChild(orbitWrap);
 
-    planets.push({el: orbitWrap, speed: p.speed, angle: Math.random()*360, meta: p});
+    // compute visual speed relative to Earth's visual orbit time
+    const speed = (365 / p.periodDays) * earthSpeed; // deg per ms
+    planets.push({el: orbitWrap, planetEl: planet, speed: speed, angle: Math.random()*360, meta: p, isSun:false});
   });
 }
 
@@ -110,30 +129,16 @@ function loop(t){
   const dt = Math.min(40, t - last);
   last = t;
 
-  // update planet angles first so they stay in sync with stars
+  // update planet orbit wrappers (rotate the wrapper to move the planet in a circle)
   planets.forEach(pl=>{
-    pl.angle += pl.speed * (warp ? 6.5 : 1) * (dt / 16);
-    pl.angle %= 360;
+    if(pl.isSun) return; // sun doesn't orbit
+    // pl.speed is in degrees per ms
+    const speed = pl.speed * (warp ? 6.5 : 1);
+    pl.angle = (pl.angle + speed * dt) % 360;
     pl.el.style.transform = `translate(-50%,-50%) rotate(${pl.angle}deg)`;
   });
 
-  // choose the planet closest to the front (angle near 0deg) and make only it visible
-  if(planets.length){
-    let bestIdx = 0; let bestDelta = 360;
-    planets.forEach((pl, idx)=>{
-      const ang = ((pl.angle % 360) + 360) % 360;
-      const delta = Math.min(ang, 360 - ang);
-      if(delta < bestDelta){ bestDelta = delta; bestIdx = idx; }
-    });
-    planets.forEach((pl, idx)=>{
-      const planetEl = pl.el.querySelector('.planet');
-      if(!planetEl) return;
-      if(idx === bestIdx){ planetEl.classList.add('visible'); planetEl.classList.remove('hidden'); }
-      else { planetEl.classList.add('hidden'); planetEl.classList.remove('visible'); }
-    });
-  }
-
-  // draw starfield
+  // draw starfield background
   ctx.clearRect(0,0,canvas.width,canvas.height);
   const grad = ctx.createLinearGradient(0,0,w,0);
   grad.addColorStop(0,'rgba(10,4,20,0.45)');
@@ -142,6 +147,7 @@ function loop(t){
   ctx.fillRect(0,0,w,h);
   stars.forEach(s=>{ s.update(dt); s.draw(); });
 
+  // warp visual streaks (unchanged)
   if(warp){
     warpTimer -= dt;
     if(warpTimer <= 0) disableWarp();

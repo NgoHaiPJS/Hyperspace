@@ -13,14 +13,14 @@
   <!-- Solar system (planets) inserted between starfield and UI overlay -->
   <div id="solar" aria-hidden="true"></div>
 
-  <div class="overlay">
-    <div class="panel">
-      <h1 class="title">HYPERSPACE</h1>
-      <p class="subtitle">A quiet, purple sea of stars. Press the button to jump.</p>
-      <button id="warpBtn" aria-label="Engage Warp"> 
+  <!-- compact bottom UI: title bottom-left, warp button centered, status above button -->
+  <div class="ui-bottom" role="region" aria-label="Hyperspace Controls">
+    <div class="title-bottom">HYPERSPACE</div>
+    <div class="warp-wrap">
+      <div id="status" class="status" aria-live="polite">Drift mode.</div>
+      <button id="warpBtn" aria-label="Engage Warp">
         <span class="btn-inner">Engage Warp</span>
       </button>
-      <div id="status" class="status" aria-live="polite"></div>
     </div>
   </div>
 
