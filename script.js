@@ -62,8 +62,19 @@ function initStars(){
 // ---- Solar system / planets ----
 const solarEl = document.getElementById('solar');
 let planets = [];
-// multiplier to make planets larger than the base `size` values in `planetsData`
-const PLANET_SCALE = 1.6;
+
+// approximate mean diameters (km) — NASA values (rounded)
+const diameters = {
+  Sun: 1391000,
+  Mercury: 4879,
+  Venus: 12104,
+  Earth: 12742,
+  Mars: 6779,
+  Jupiter: 139820,
+  Saturn: 116460,
+  Uranus: 50724,
+  Neptune: 49244
+};
 // periods are approximate orbital period (days)
 const planetsData = [
   {name:'Sun', size:64, color:'#ffd77a', orbitFactor:0, periodDays:0},
@@ -117,8 +128,10 @@ function tryApplySurfaceImage(surface, p){
     const file = 'Planets/' + variants[idx++];
     const img = new Image();
     img.onload = () => {
-      // overlay the image on top of the procedural background so shading still shows
-      surface.style.background = `url('${file}') center/cover no-repeat, ${generateSurfaceBackground(p)}`;
+      // replace the procedural background with the provided image (cover)
+      surface.style.background = `url('${file}') center/cover no-repeat`;
+      surface.style.backgroundSize = 'cover';
+      surface.style.backgroundPosition = 'center';
     };
     img.onerror = () => attempt();
     img.src = file;
@@ -133,6 +146,9 @@ function createPlanets(prevAngles){
   // visual earth orbit time (ms) — Earth completes one orbit in this many ms for the animation
   const earthOrbitMs = 40000; // ~40s for Earth orbit (adjustable)
   const earthSpeed = 360 / earthOrbitMs; // deg per ms for Earth
+  // visual sizing: scale real diameters into a usable pixel range
+  const maxDiameter = diameters['Sun'] || Math.max(...Object.values(diameters));
+  const MAX_VISUAL = Math.min(160, Math.round(minDim * 0.12));
 
   planetsData.forEach((p,i)=>{
     if(p.name === 'Sun'){
@@ -166,8 +182,9 @@ function createPlanets(prevAngles){
 
     const planet = document.createElement('div');
     planet.className = 'planet visible';
-    // scale visual size so planets appear larger than the original flat dots
-    const visualSize = Math.round(p.size * PLANET_SCALE);
+    // scale visual size based on real diameter ratios
+    const dia = diameters[p.name] || (p.size * 1000);
+    const visualSize = Math.max(10, Math.round((dia / maxDiameter) * MAX_VISUAL));
     planet.style.width = visualSize + 'px';
     planet.style.height = visualSize + 'px';
     planet.style.setProperty('--orbit', orbit + 'px');
@@ -211,7 +228,7 @@ function createPlanets(prevAngles){
     label.className = 'planet-label';
     label.style.setProperty('--orbit', orbit + 'px');
     // label offset should match the visual planet size
-    label.style.setProperty('--size', (Math.round(p.size * PLANET_SCALE)) + 'px');
+    label.style.setProperty('--size', visualSize + 'px');
     label.innerHTML = `<small>${p.name}</small>`;
     orbitWrap.appendChild(label);
 
