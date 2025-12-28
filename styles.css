@@ -78,5 +78,9 @@ body{background:linear-gradient(180deg,var(--bg-1),var(--bg-2));color:#eae6ff;ov
 .sun{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;box-shadow:0 22px 60px rgba(255,200,80,0.12),0 0 120px rgba(255,200,80,0.08);pointer-events:none}
 .sun{animation:rotateSlow 80s linear infinite}
 
+/* FORCE: hide any orbit/planet ring elements (removed by JS but ensure hidden) */
+.orbit .ring,
+.planet .planet-ring{display:none !important}
+
 /* ensure planets are subtle on small screens */
 @media (max-width:720px){.planet{filter:blur(0.2px);opacity:0.95}.orbit .ring{display:none}}

@@ -133,9 +133,7 @@ function createPlanets(prevAngles){
     orbitWrap.style.setProperty('--glow', p.color);
     orbitWrap.style.setProperty('--size', p.size + 'px');
 
-    const ring = document.createElement('div');
-    ring.className = 'ring';
-    orbitWrap.appendChild(ring);
+    // orbit path/ring removed — no DOM element created for rings
 
     const planet = document.createElement('div');
     planet.className = 'planet visible';
@@ -170,14 +168,7 @@ function createPlanets(prevAngles){
       planet.appendChild(clouds);
     }
 
-    // Saturn: create a planet-local ring (instead of orbit-path ring)
-    if(p.name === 'Saturn'){
-      const planetRing = document.createElement('div');
-      planetRing.className = 'planet-ring saturn';
-      planet.appendChild(planetRing);
-      // keep orbit path subtle (don't highlight it)
-      ring.style.opacity = '0.06';
-    }
+    // Saturn: no rings (removed)
 
     planet.addEventListener('click', (e)=>{ e.stopPropagation(); document.getElementById('status').textContent = p.name; });
     orbitWrap.appendChild(planet);
