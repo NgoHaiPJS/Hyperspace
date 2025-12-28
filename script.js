@@ -62,6 +62,8 @@ function initStars(){
 // ---- Solar system / planets ----
 const solarEl = document.getElementById('solar');
 let planets = [];
+// multiplier to make planets larger than the base `size` values in `planetsData`
+const PLANET_SCALE = 1.6;
 // periods are approximate orbital period (days)
 const planetsData = [
   {name:'Sun', size:64, color:'#ffd77a', orbitFactor:0, periodDays:0},
@@ -157,16 +159,19 @@ function createPlanets(prevAngles){
     orbitWrap.className = 'orbit';
     orbitWrap.style.setProperty('--orbit', orbit + 'px');
     orbitWrap.style.setProperty('--glow', p.color);
+    // we'll set visual size on the planet itself (scaled from data.size)
     orbitWrap.style.setProperty('--size', p.size + 'px');
 
     // orbit path/ring removed — no DOM element created for rings
 
     const planet = document.createElement('div');
     planet.className = 'planet visible';
-    planet.style.width = p.size + 'px';
-    planet.style.height = p.size + 'px';
+    // scale visual size so planets appear larger than the original flat dots
+    const visualSize = Math.round(p.size * PLANET_SCALE);
+    planet.style.width = visualSize + 'px';
+    planet.style.height = visualSize + 'px';
     planet.style.setProperty('--orbit', orbit + 'px');
-    planet.style.setProperty('--size', p.size + 'px');
+    planet.style.setProperty('--size', visualSize + 'px');
     planet.style.setProperty('--glow', p.color);
     planet.title = p.name;
     planet.setAttribute('role', 'img');
@@ -205,7 +210,8 @@ function createPlanets(prevAngles){
     const label = document.createElement('div');
     label.className = 'planet-label';
     label.style.setProperty('--orbit', orbit + 'px');
-    label.style.setProperty('--size', p.size + 'px');
+    // label offset should match the visual planet size
+    label.style.setProperty('--size', (Math.round(p.size * PLANET_SCALE)) + 'px');
     label.innerHTML = `<small>${p.name}</small>`;
     orbitWrap.appendChild(label);
 

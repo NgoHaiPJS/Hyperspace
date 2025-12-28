@@ -36,6 +36,8 @@ body{background:linear-gradient(180deg,var(--bg-1),var(--bg-2));color:#eae6ff;ov
 #solar{position:fixed;inset:0;pointer-events:none;z-index:1}
 .orbit{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(0deg);transform-origin:center center;width:0;height:0}
 .planet{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) translateX(var(--orbit));border-radius:50%;box-shadow:0 6px 18px rgba(0,0,0,0.45),0 0 30px var(--glow);backdrop-filter:blur(0px)}
+.planet{z-index:2}
+.planet{box-shadow:0 10px 30px rgba(0,0,0,0.55),0 0 40px var(--glow)}
 .planet{transition:transform .35s ease,filter .35s ease,opacity .35s}
 .planet.hidden{opacity:0.0}
 .planet.visible{opacity:1}
