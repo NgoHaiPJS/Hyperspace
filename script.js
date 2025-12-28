@@ -98,6 +98,32 @@ function generateSurfaceBackground(p){
   }
 }
 
+// attempt to apply an image from the Planets/ folder on top of the procedural background
+function tryApplySurfaceImage(surface, p){
+  const name = p.name || '';
+  const variants = [
+    `${name}.png`,
+    `${name}.jpg`,
+    `${name}.jpeg`,
+    `${name}.webp`,
+    `${name.toLowerCase()}.png`,
+    `${name.toLowerCase().replace(/\s+/g,'_')}.png`
+  ];
+  let idx = 0;
+  function attempt(){
+    if(idx >= variants.length) return; // give up
+    const file = 'Planets/' + variants[idx++];
+    const img = new Image();
+    img.onload = () => {
+      // overlay the image on top of the procedural background so shading still shows
+      surface.style.background = `url('${file}') center/cover no-repeat, ${generateSurfaceBackground(p)}`;
+    };
+    img.onerror = () => attempt();
+    img.src = file;
+  }
+  attempt();
+}
+
 function createPlanets(prevAngles){
   solarEl.innerHTML = '';
   planets = [];
@@ -150,6 +176,8 @@ function createPlanets(prevAngles){
     planet.innerHTML = '<div class="surface"></div>';
     const surface = planet.querySelector('.surface');
     surface.style.background = generateSurfaceBackground(p);
+    // try to apply an uploaded image if available (falls back silently)
+    tryApplySurfaceImage(surface, p);
 
     // atmosphere for planets with gas/air
     if(['Venus','Earth','Mars','Saturn','Jupiter','Uranus','Neptune'].includes(p.name)){
