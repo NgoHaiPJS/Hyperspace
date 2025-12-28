@@ -75,7 +75,30 @@ const planetsData = [
   {name:'Neptune', size:18, color:'#7aaaff', orbitFactor:0.52, periodDays:60190}
 ];
 
-function createPlanets(){
+// generate layered CSS background for common planet types
+function generateSurfaceBackground(p){
+  const base = p.color || '#888';
+  switch(p.name){
+    case 'Earth':
+      return `radial-gradient(circle at 30% 20%, rgba(20,110,64,0.95) 0%, rgba(20,110,64,0.0) 22%), linear-gradient(180deg,#0b4f9b 0%, #2e9bff 42%), radial-gradient(circle at 70% 65%, rgba(0,0,0,0.06), transparent 20%)`;
+    case 'Mars':
+      return `linear-gradient(180deg,#ff7b5e,#c94a3a), repeating-linear-gradient(90deg, rgba(0,0,0,0.02) 0 2px, transparent 2px 7px)`;
+    case 'Jupiter':
+      return `repeating-linear-gradient(0deg, #d7b08a 0 14px, #c2916a 14px 30px, #e3c9a1 30px 44px)`;
+    case 'Saturn':
+      return `repeating-linear-gradient(0deg,#f0dec2 0 12px,#e2cba6 12px 26px,#d9c3a0 26px 40px)`;
+    case 'Uranus':
+      return `radial-gradient(circle at 30% 30%, #bfeff5 0%, transparent 30%), linear-gradient(180deg,#8fdaf5,#6fcff4)`;
+    case 'Neptune':
+      return `radial-gradient(circle at 40% 20%, #8ac1ff 0%, transparent 30%), linear-gradient(180deg,#2e77de,#1b5fb3)`;
+    case 'Venus':
+      return `linear-gradient(180deg,#e6c28a,#b8895a), repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0 3px, transparent 3px 8px)`;
+    default:
+      return `radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25), ${base})`;
+  }
+}
+
+function createPlanets(prevAngles){
   solarEl.innerHTML = '';
   planets = [];
   const minDim = Math.min(window.innerWidth, window.innerHeight);
@@ -118,9 +141,44 @@ function createPlanets(){
     planet.className = 'planet visible';
     planet.style.width = p.size + 'px';
     planet.style.height = p.size + 'px';
-    planet.style.background = p.color;
     planet.style.setProperty('--orbit', orbit + 'px');
+    planet.style.setProperty('--size', p.size + 'px');
+    planet.style.setProperty('--glow', p.color);
     planet.title = p.name;
+    planet.setAttribute('role', 'img');
+    planet.setAttribute('aria-label', p.name);
+
+    // layered inner structure: surface, optional clouds, atmosphere
+    planet.innerHTML = '<div class="surface"></div>';
+    const surface = planet.querySelector('.surface');
+    surface.style.background = generateSurfaceBackground(p);
+
+    // atmosphere for planets with gas/air
+    if(['Venus','Earth','Mars','Saturn','Jupiter','Uranus','Neptune'].includes(p.name)){
+      planet.setAttribute('data-has-atmo','true');
+      const atmo = document.createElement('div');
+      atmo.className = 'atmo';
+      planet.appendChild(atmo);
+    }
+
+    // Earth: add a slow-moving cloud layer
+    if(p.name === 'Earth'){
+      const clouds = document.createElement('div');
+      clouds.className = 'clouds';
+      clouds.style.background = 'radial-gradient(circle at 20% 20%, rgba(255,255,255,0.95) 0px, rgba(255,255,255,0.06) 18%, transparent 30%), radial-gradient(circle at 70% 60%, rgba(255,255,255,0.95) 0px, rgba(255,255,255,0.06) 16%, transparent 26%)';
+      clouds.style.filter = 'blur(0.8px)';
+      planet.appendChild(clouds);
+    }
+
+    // Saturn: create a planet-local ring (instead of orbit-path ring)
+    if(p.name === 'Saturn'){
+      const planetRing = document.createElement('div');
+      planetRing.className = 'planet-ring saturn';
+      planet.appendChild(planetRing);
+      // keep orbit path subtle (don't highlight it)
+      ring.style.opacity = '0.06';
+    }
+
     planet.addEventListener('click', (e)=>{ e.stopPropagation(); document.getElementById('status').textContent = p.name; });
     orbitWrap.appendChild(planet);
 
@@ -136,7 +194,8 @@ function createPlanets(){
 
     // compute visual speed relative to Earth's visual orbit time
     const speed = (365 / p.periodDays) * earthSpeed; // deg per ms
-    planets.push({el: orbitWrap, planetEl: planet, speed: speed, angle: Math.random()*360, meta: p, isSun:false});
+    const initialAngle = (prevAngles && typeof prevAngles[p.name] !== 'undefined') ? prevAngles[p.name] : Math.random()*360;
+    planets.push({el: orbitWrap, planetEl: planet, speed: speed, angle: initialAngle, meta: p, isSun:false});
   });
 }
 
@@ -224,7 +283,12 @@ function playHum(){
 }
 
 // attach events
-window.addEventListener('resize', () => { resize(); initStars(); createPlanets(); });
+window.addEventListener('resize', () => {
+  // preserve current planet angles so they don't jump on resize/fullscreen
+  const currentAngles = {};
+  planets.forEach(pl => { if(!pl.isSun && pl.meta && pl.meta.name) currentAngles[pl.meta.name] = pl.angle; });
+  resize(); initStars(); createPlanets(currentAngles);
+});
 document.getElementById('warpBtn').addEventListener('click', ()=>{
   enableWarp();
 });

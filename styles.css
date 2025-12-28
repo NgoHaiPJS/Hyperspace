@@ -40,7 +40,32 @@ body{background:linear-gradient(180deg,var(--bg-1),var(--bg-2));color:#eae6ff;ov
 .planet.hidden{opacity:0.0}
 .planet.visible{opacity:1}
 .planet::after{content:"";position:absolute;inset:0;border-radius:50%;box-shadow:inset 0 -6px 12px rgba(0,0,0,0.12)}
-.orbit .ring{position:absolute;left:50%;top:50%;width:calc(var(--orbit) * 2);height:calc(var(--orbit) * 2);margin-left:calc(-1 * var(--orbit));margin-top:calc(-1 * var(--orbit));border-radius:50%;border:1px solid rgba(255,255,255,0.03);transform:translate(-50%,-50%);pointer-events:none}
+.planet .surface{position:absolute;inset:4%;border-radius:50%;overflow:hidden;transform-origin:center center}
+.planet .atmo{position:absolute;inset:-6%;border-radius:50%;pointer-events:none;mix-blend-mode:screen;filter:blur(6px);opacity:0.9}
+.planet .clouds{position:absolute;inset:2%;border-radius:50%;pointer-events:none;mix-blend-mode:screen;opacity:0.85}
+.planet .surface, .planet .clouds{animation:rotateSlow linear infinite}
+.planet .surface{animation-duration:60s}
+.planet .clouds{animation-duration:140s}
+
+@keyframes rotateSlow{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* more pronounced ring visuals */
+.orbit .ring{position:absolute;left:50%;top:50%;width:calc(var(--orbit) * 2);height:calc(var(--orbit) * 2);margin-left:calc(-1 * var(--orbit));margin-top:calc(-1 * var(--orbit));border-radius:50%;border:0;transform:translate(-50%,-50%);pointer-events:none}
+.orbit .ring::before{content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:100%;height:100%;border-radius:50%;background:conic-gradient(from 0deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));filter:blur(0.6px);}
+
+/* Saturn-specific ring accent */
+.orbit .ring.saturn{background:radial-gradient(ellipse at center, transparent 48%, rgba(255,240,200,0.04) 49%, rgba(160,120,70,0.02) 52%, transparent 56%), repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0 2px, rgba(255,255,255,0.01) 2px 6px);opacity:0.95}
+
+/* subtle atmosphere glow per planet using --glow variable */
+.planet[data-has-atmo="true"] .atmo{background:radial-gradient(circle at 30% 30%, color-mix(in srgb, var(--glow) 45%, transparent), transparent 50%)}
+
+/* orbit path (subtle) */
+.orbit .ring{position:absolute;left:50%;top:50%;width:calc(var(--orbit) * 2);height:calc(var(--orbit) * 2);margin-left:calc(-1 * var(--orbit));margin-top:calc(-1 * var(--orbit));border-radius:50%;transform:translate(-50%,-50%);pointer-events:none}
+
+/* planet-local rings (e.g., Saturn) — centered on the planet element */
+.planet .planet-ring{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) rotate(-18deg);pointer-events:none;z-index:0}
+.planet .planet-ring.saturn{width:calc(var(--size) * 3.2);height:calc(var(--size) * 0.6);margin-left:calc(-1 * var(--size) * 1.6);margin-top:calc(-0.3 * var(--size));border-radius:50%/50%;background:radial-gradient(ellipse at center, rgba(210,180,120,0.02) 0%, rgba(210,180,120,0.06) 40%, transparent 60%), repeating-linear-gradient(90deg, rgba(255,255,255,0.02) 0 2px, rgba(255,255,255,0.01) 2px 6px);filter:blur(0.4px);opacity:0.95}
+
 
 /* planet labels */
 .planet-label{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) translateX(var(--orbit)) translateY(calc(var(--size) + 6px));color:rgba(230,230,255,0.9);font-size:11px;white-space:nowrap;pointer-events:none;text-align:center}
@@ -51,6 +76,7 @@ body{background:linear-gradient(180deg,var(--bg-1),var(--bg-2));color:#eae6ff;ov
 
 /* Sun (center) */
 .sun{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);border-radius:50%;box-shadow:0 22px 60px rgba(255,200,80,0.12),0 0 120px rgba(255,200,80,0.08);pointer-events:none}
+.sun{animation:rotateSlow 80s linear infinite}
 
 /* ensure planets are subtle on small screens */
 @media (max-width:720px){.planet{filter:blur(0.2px);opacity:0.95}.orbit .ring{display:none}}
