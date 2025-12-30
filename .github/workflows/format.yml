@@ -1,0 +1,22 @@
+name: Check formatting
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  prettier-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      - name: Check formatting with Prettier
+        run: |
+          npm init -y
+          npm install --no-save --silent prettier
+          npx prettier --check "**/*.{html,css,js,md}"
